@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutikas restorani reserveerimissüsteem</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 36px;
+            background: #0a1628;
+            color: #d4e8da;
+        }
+
+        h1 { margin-bottom: 24px; color: #5ecb85; }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background: #0f2040;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            border: 1px solid #1a3a5c;
+        }
+
+        .form-card label {
+            display: block;
+            font-weight: bold;
+            margin-top: 14px;
+            margin-bottom: 6px;
+        }
+
+        .form-card input,
+        .form-card select,
+        .form-card button {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #1e4060;
+            font-size: 14px;
+            background: #0d2a45;
+            color: #d4e8da;
+        }
+
+        .form-card button {
+            margin-top: 18px;
+            background: #1e7a45;
+            color: #e8f8ef;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .form-card button:hover { opacity: 0.88; }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .checkbox-row input { width: auto; }
+
+        .plan-card h2,
+        .result-card h2 { margin-top: 0; }
+
+        .legend {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            font-size: 14px;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+
+        .restaurant-plan {
+            position: relative;
+            width: 100%;
+            min-height: 480px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1.5px solid #c0b09a;
+        }
+
+        .floor-main {
+            position: absolute;
+            inset: 0;
+            background: #f2ebe0;
+        }
+
+        .wall-divider {
+            position: absolute;
+            top: 0; bottom: 0;
+            right: 30%;
+            width: 8px;
+            background: repeating-linear-gradient(
+                    180deg,
+                    #8a7a6a 0px, #8a7a6a 10px,
+                    #b09a88 10px, #b09a88 14px
+            );
+            z-index: 3;
+        }
+
+        .floor-terrace {
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 30%;
+            background:
+                    repeating-linear-gradient(
+                            0deg,
+                            transparent 0px, transparent 20px,
+                            rgba(130,110,80,.12) 20px, rgba(130,110,80,.12) 22px
+                    ),
+                    repeating-linear-gradient(
+                            90deg,
+                            transparent 0px, transparent 26px,
+                            rgba(130,110,80,.08) 26px, rgba(130,110,80,.08) 28px
+                    ),
+                    #e4d9c0;
+        }
+
+        .terrace-light {
+            position: absolute;
+            top: 0; right: 0;
+            width: 30%; height: 35%;
+            background: linear-gradient(180deg, rgba(190,220,255,.18) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .railing-top {
+            position: absolute;
+            top: 0; right: 0; left: 70%;
+            height: 7px;
+            background: repeating-linear-gradient(90deg, #7a6848 0px, #7a6848 5px, transparent 5px, transparent 14px);
+            z-index: 4;
+        }
+
+        .railing-bottom {
+            position: absolute;
+            bottom: 0; right: 0; left: 70%;
+            height: 7px;
+            background: repeating-linear-gradient(90deg, #7a6848 0px, #7a6848 5px, transparent 5px, transparent 14px);
+            z-index: 4;
+        }
+
+        .railing-right {
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 7px;
+            background: repeating-linear-gradient(180deg, #7a6848 0px, #7a6848 5px, transparent 5px, transparent 14px);
+            z-index: 4;
+        }
+
+        .private-room {
+            position: absolute;
+            left: 34%; top: 12%;
+            width: 26%; height: 54%;
+            border: 2px dashed #9a8a78;
+            border-radius: 10px;
+            background: rgba(195,185,170,.15);
+            z-index: 2;
+        }
+
+        .zone-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #6a5e50;
+            background: rgba(255,255,255,.80);
+            padding: 3px 8px;
+            border-radius: 5px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .table {
+            position: absolute;
+            border-radius: 9px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1.5px solid rgba(0,0,0,.18);
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease;
+            color: #1e1208;
+            user-select: none;
+            z-index: 6;
+        }
+
+        .table:hover {
+            transform: scale(1.06);
+            box-shadow: 0 4px 14px rgba(0,0,0,.18);
+        }
+
+        .table small {
+            display: block;
+            font-weight: 400;
+            font-size: 10px;
+            margin-top: 2px;
+            opacity: .8;
+        }
+
+        .status-available   { background: #9dd4a8; border-color: #6aad7a; }
+        .status-booked      { background: #f0a49a; border-color: #d4705e; }
+        .status-recommended {
+            background: #f7d86a; border-color: #c8a825;
+            box-shadow: 0 0 0 4px rgba(247,216,80,.28);
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.07); }
+        }
+
+        .result-card { margin-top: 24px; }
+
+        .result-box {
+            margin-top: 12px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #0d2a45;
+            border: 1px solid #1a3a5c;
+        }
+
+        .recommended-box { border: 2px solid #2e9e5e; background: #0a2e1e; }
+
+        .warning { color: #ff7f7f; font-weight: bold; }
+        .muted   { color: #6a9080; }
+
+        .alt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .hidden { display: none; }
+
+        .modal-content {
+            background: #0f2040;
+            color: #d4e8da;
+            border-radius: 16px;
+            padding: 24px;
+            width: 340px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid #1a3a5c;
+        }
+
+        .modal-content h3 { margin-top: 0; color: #5ecb85; }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .reserve-btn { background: #1e7a45; color: #e8f8ef; }
+        .reserve-btn:disabled { background: #1a3a30; color: #557060; cursor: not-allowed; }
+        .cancel-btn  { background: #1a3a5c; color: #a0c8d8; }
+
+        @media (max-width: 1000px) {
+            .layout { grid-template-columns: 1fr; }
+            .restaurant-plan { min-height: 420px; }
+        }
+    </style>
+</head>
+<body>
+<h1>Nutikas restorani reserveerimissüsteem</h1>
+
+<div class="layout">
+    <div class="card form-card">
+        <h2>Broneeringu päring</h2>
+
+        <label for="peopleCount">Inimeste arv</label>
+        <input type="number" id="peopleCount" min="1" value="4">
+
+        <label for="zone">Tsoon</label>
+        <select id="zone">
+            <option value="Main">Main</option>
+            <option value="Terrace">Terrace</option>
+            <option value="Private">Private</option>
+        </select>
+
+        <label for="startTime">Algusaeg</label>
+        <input type="datetime-local" id="startTime">
+
+        <label for="endTime">Lõpuaeg</label>
+        <input type="datetime-local" id="endTime">
+
+        <div class="checkbox-row">
+            <input type="checkbox" id="quiet">
+            <label for="quiet" style="margin:0;font-weight:normal;">Vaikne nurk / privaatsus</label>
+        </div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="window">
+            <label for="window" style="margin:0;font-weight:normal;">Akna all</label>
+        </div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="kids">
+            <label for="kids" style="margin:0;font-weight:normal;">Laste mängunurga lähedal</label>
+        </div>
+
+        <button onclick="recommendTable()">Soovita laud</button>
+    </div>
+
+    <div>
+        <div class="card plan-card">
+            <h2>Restorani plaan</h2>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="legend-color" style="background:#9dd4a8;border:1px solid #6aad7a;"></span> Saadaval
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background:#f0a49a;border:1px solid #d4705e;"></span> Hõivatud
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background:#f7d86a;border:1px solid #c8a825;"></span> Soovitatud
+                </div>
+            </div>
+
+            <div class="restaurant-plan" id="restaurantPlan">
+                <div class="floor-main"></div>
+                <div class="floor-terrace"></div>
+                <div class="terrace-light"></div>
+                <div class="wall-divider"></div>
+                <div class="railing-top"></div>
+                <div class="railing-bottom"></div>
+                <div class="railing-right"></div>
+
+                <div class="private-room">
+                    <span class="zone-label" style="left:50%;top:8px;transform:translateX(-50%);">Private room</span>
+                </div>
+
+                <span class="zone-label" style="left:12px;top:10px;">Main hall</span>
+                <span class="zone-label" style="right:12px;top:10px;">Terrace</span>
+            </div>
+        </div>
+
+        <div class="card result-card">
+            <h2>Tulemus</h2>
+            <div id="result" class="muted">Tee päring, et näha soovitust.</div>
+        </div>
+    </div>
+</div>
+
+<div id="tableModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Laua valik</h3>
+        <div id="modalTableInfo"></div>
+        <div class="modal-actions">
+            <button id="reserveBtn" class="reserve-btn">Broneeri</button>
+            <button onclick="closeModal()" class="cancel-btn">Tühista</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allTables = [];
+    let availableTables = [];
+    let recommendedTableId = null;
+    let selectedTable = null;
+
+    const tablePositions = {
+        1: { x: '6%',  y: '12%', w: '11%', h: '18%' },
+        2: { x: '6%',  y: '55%', w: '13%', h: '22%' },
+        3: { x: '38%', y: '20%', w: '16%', h: '30%' },
+        4: { x: '73%', y: '12%', w: '12%', h: '22%' },
+        5: { x: '76%', y: '58%', w: '10%', h: '18%' },
+        6: { x: '18%', y: '62%', w: '15%', h: '26%' },
+    };
+
+    function formatDateTimeLocalValue(date) {
+        const pad = n => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    window.onload = async () => {
+        const now = new Date();
+        const end = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+        document.getElementById('startTime').value = formatDateTimeLocalValue(now);
+        document.getElementById('endTime').value   = formatDateTimeLocalValue(end);
+        await loadAllTables();
+        await loadAvailableTables();
+        renderFloorPlan();
+    };
+
+    async function loadAllTables() {
+        const response = await fetch('/api/tables');
+        allTables = await response.json();
+    }
+
+    async function loadAvailableTables() {
+        const peopleCount = document.getElementById('peopleCount').value;
+        const zone        = document.getElementById('zone').value;
+        const startTime   = document.getElementById('startTime').value;
+        const endTime     = document.getElementById('endTime').value;
+        const url = `/api/tables/search?peoplecount=${encodeURIComponent(peopleCount)}&zone=${encodeURIComponent(zone)}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`;
+        const response = await fetch(url);
+        availableTables = await response.json();
+    }
+
+    function getTableStatusClass(table) {
+        if (recommendedTableId === table.id) return 'status-recommended';
+        return availableTables.some(t => t.id === table.id) ? 'status-available' : 'status-booked';
+    }
+
+    function renderFloorPlan() {
+        const plan = document.getElementById('restaurantPlan');
+        plan.querySelectorAll('.table').forEach(el => el.remove());
+
+        allTables.forEach(table => {
+            const pos = tablePositions[table.id] || { x: '5%', y: '5%', w: '12%', h: '18%' };
+            const div = document.createElement('div');
+            div.className = `table ${getTableStatusClass(table)}`;
+            div.style.left   = pos.x;
+            div.style.top    = pos.y;
+            div.style.width  = pos.w;
+            div.style.height = pos.h;
+            div.innerHTML = `<div>Laud #${table.id}</div><small>${table.seats} kohta</small>`;
+            div.onclick = () => openModal(table);
+            plan.appendChild(div);
+        });
+    }
+
+    async function recommendTable() {
+        const resultDiv = document.getElementById('result');
+
+        const payload = {
+            peopleCount: parseInt(document.getElementById('peopleCount').value),
+            zone:      document.getElementById('zone').value,
+            startTime: document.getElementById('startTime').value,
+            endTime:   document.getElementById('endTime').value,
+            quiet:  document.getElementById('quiet').checked,
+            window: document.getElementById('window').checked,
+            kids:   document.getElementById('kids').checked,
+        };
+
+        try {
+            await loadAvailableTables();
+
+            const response = await fetch('/api/tables/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) throw new Error('Server tagastas vea');
+
+            const data = await response.json();
+            recommendedTableId = data.recommendedTable ? data.recommendedTable.id : null;
+            renderFloorPlan();
+
+            if (!data.recommendedTable) {
+                resultDiv.innerHTML = `<div class="result-box"><p class="warning">${data.message ?? 'Sobivat lauda ei leitud.'}</p></div>`;
+                return;
+            }
+
+            const unmetHtml = data.unmetPreferences && data.unmetPreferences.length > 0
+                ? `<p class="warning">Ei saanud pakkuda: ${data.unmetPreferences.join(', ')}</p>`
+                : `<p>Kõik valitud eelistused said täidetud.</p>`;
+
+            const altHtml = data.alternatives && data.alternatives.length > 0
+                ? `<h3>Alternatiivid</h3><div class="alt-grid">${data.alternatives.map(t => `
+                    <div class="result-box">
+                        <strong>Laud #${t.id}</strong><br>
+                        Kohad: ${t.seats}<br>
+                        Tsoon: ${t.zone}<br>
+                        Vaikne: ${t.quiet ? 'jah' : 'ei'}<br>
+                        Aknakoht: ${t.windowSeat ? 'jah' : 'ei'}<br>
+                        Lasteala lähedal: ${t.kids ? 'jah' : 'ei'}
+                    </div>`).join('')}</div>`
+                : `<p class="muted">Alternatiive ei leitud.</p>`;
+
+            const r = data.recommendedTable;
+            resultDiv.innerHTML = `
+                <p><strong>${data.message}</strong></p>
+                <div class="result-box recommended-box">
+                    <h3>Soovitatud laud</h3>
+                    <strong>Laud #${r.id}</strong><br>
+                    Kohad: ${r.seats}<br>
+                    Tsoon: ${r.zone}<br>
+                    Vaikne: ${r.quiet ? 'jah' : 'ei'}<br>
+                    Aknakoht: ${r.windowSeat ? 'jah' : 'ei'}<br>
+                    Lasteala lähedal: ${r.kids ? 'jah' : 'ei'}
+                </div>
+                ${unmetHtml}
+                ${altHtml}
+            `;
+        } catch (error) {
+            resultDiv.innerHTML = `<div class="result-box"><p class="warning">Päring ebaõnnestus: ${error.message}</p></div>`;
+        }
+    }
+
+    function openModal(table) {
+        selectedTable = table;
+        const isAvailable   = availableTables.some(t => t.id === table.id);
+        const isRecommended = recommendedTableId === table.id;
+
+        document.getElementById('modalTableInfo').innerHTML = `
+            <p><strong>Laud #${table.id}</strong></p>
+            <p>Kohad: ${table.seats}</p>
+            <p>Tsoon: ${table.zone}</p>
+            <p>Staatus: ${isRecommended ? 'Soovitatud' : isAvailable ? 'Saadaval' : 'Hõivatud'}</p>
+            <p>Vaikne: ${table.quiet ? 'jah' : 'ei'}</p>
+            <p>Aknakoht: ${table.windowSeat ? 'jah' : 'ei'}</p>
+            <p>Lasteala lähedal: ${table.kids ? 'jah' : 'ei'}</p>
+        `;
+
+        const btn = document.getElementById('reserveBtn');
+        btn.disabled    = !isAvailable;
+        btn.textContent = isAvailable ? 'Broneeri' : 'Pole saadaval';
+        btn.onclick     = isAvailable ? reserveSelectedTable : null;
+
+        document.getElementById('tableModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('tableModal').classList.add('hidden');
+        selectedTable = null;
+    }
+
+    async function reserveSelectedTable() {
+        if (!selectedTable) return;
+
+        const reservedTableId = selectedTable.id;
+
+        const payload = {
+            tableId: reservedTableId,
+            peopleCount: parseInt(document.getElementById("peopleCount").value),
+            startTime: document.getElementById("startTime").value,
+            endTime: document.getElementById("endTime").value
+        };
+
+        try {
+            const response = await fetch("/api/reservations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Broneerimine ebaõnnestus.");
+            }
+
+            alert(`Broneering tehtud lauale #${reservedTableId}.`);
+            closeModal();
+
+            recommendedTableId = null;
+            await loadAllTables();
+            await loadAvailableTables();
+            renderFloorPlan();
+
+            document.getElementById("result").innerHTML = `
+            <div class="result-box recommended-box">
+                <strong>Broneering kinnitatud</strong><br>
+                Laud #${reservedTableId} on edukalt broneeritud.
+            </div>
+        `;
+        } catch (error) {
+            alert(`Broneerimine ebaõnnestus: ${error.message}`);
+        }
+    }
+</script>
+</body>
+</html>

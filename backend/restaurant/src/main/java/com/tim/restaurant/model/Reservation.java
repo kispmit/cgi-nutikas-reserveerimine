@@ -61,5 +61,4 @@ public class Reservation {
     public void setPeoplecount(int peoplecount) {
         this.peoplecount = peoplecount;
     }
-
 }
