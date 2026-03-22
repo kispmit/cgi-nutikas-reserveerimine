@@ -15,7 +15,7 @@ public class Reservation {
     @ManyToOne
     @JoinColumn(name = "table_id")
 
-    private RestaurantTables table;
+    private RestaurantTable table;
 
     private Date startTime;
     private Date endTime;
@@ -24,7 +24,7 @@ public class Reservation {
 
     public Reservation() {}
 
-    public Reservation(RestaurantTables table, Date startTime, Date endTime, int peoplecount) {
+    public Reservation(RestaurantTable table, Date startTime, Date endTime, int peoplecount) {
         this.table = table;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -37,10 +37,10 @@ public class Reservation {
     public void setId(Long id) {
         this.id = id;
     }
-    public RestaurantTables getTable() {
+    public RestaurantTable getTable() {
         return table;
     }
-    public void setTable(RestaurantTables table) {
+    public void setTable(RestaurantTable table) {
         this.table = table;
     }
     public Date getStartTime() {

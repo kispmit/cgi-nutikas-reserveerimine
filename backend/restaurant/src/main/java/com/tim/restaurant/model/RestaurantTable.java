@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "restaurant_table")
-public class RestaurantTables {
+public class RestaurantTable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,12 +17,18 @@ public class RestaurantTables {
     @Enumerated(EnumType.STRING)
     private Zone zone;
 
-    public RestaurantTables() {}
+    public RestaurantTable() {}
 
-    public RestaurantTables(String name, int seats, Zone zone) {
+    public RestaurantTable(String name, int seats, Zone zone) {
         this.seats = seats;
         this.zone = zone;
     }
+
+    public RestaurantTable(int seats, Zone zone) {
+        this.seats = seats;
+        this.zone = zone;
+    }
+
     public Long getId() {
         return id;
     }
