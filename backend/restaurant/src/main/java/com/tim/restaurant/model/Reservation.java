@@ -3,7 +3,7 @@ package com.tim.restaurant.model;
 
 import jakarta.persistence.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reservations")
@@ -17,14 +17,14 @@ public class Reservation {
 
     private RestaurantTable table;
 
-    private Date startTime;
-    private Date endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     private int peoplecount;
 
     public Reservation() {}
 
-    public Reservation(RestaurantTable table, Date startTime, Date endTime, int peoplecount) {
+    public Reservation(RestaurantTable table, LocalDateTime startTime, LocalDateTime endTime, int peoplecount) {
         this.table = table;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -43,16 +43,16 @@ public class Reservation {
     public void setTable(RestaurantTable table) {
         this.table = table;
     }
-    public Date getStartTime() {
+    public LocalDateTime getStartTime() {
         return startTime;
     }
-    public void setStartTime(Date startTime) {
+    public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
-    public Date getEndTime() {
+    public LocalDateTime getEndTime() {
         return endTime;
     }
-    public void setEndTime(Date endTime) {
+    public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
     public int getPeoplecount() {
