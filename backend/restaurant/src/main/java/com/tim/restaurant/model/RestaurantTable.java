@@ -17,13 +17,19 @@ public class RestaurantTable {
     @Enumerated(EnumType.STRING)
     private Zone zone;
 
+    private boolean quiet;
+    private boolean windowSeat;
+    private boolean kids;
+
     public RestaurantTable() {}
 
-    public RestaurantTable(String name, int seats, Zone zone) {
+    public RestaurantTable(int seats, Zone zone, boolean quietCorner, boolean windowSeat, boolean nearKidsArea) {
         this.seats = seats;
         this.zone = zone;
+        this.quiet = quietCorner;
+        this.windowSeat = windowSeat;
+        this.kids = nearKidsArea;
     }
-
     public RestaurantTable(int seats, Zone zone) {
         this.seats = seats;
         this.zone = zone;
@@ -47,5 +53,11 @@ public class RestaurantTable {
     public void setZone(Zone zone) {
         this.zone = zone;
     }
+    public boolean isQuiet() { return quiet;}
+    public void setQuiet(boolean quiet) {this.quiet = quiet;}
+    public boolean isWindowSeat() { return windowSeat;}
+    public void setWindowSeat(boolean windowSeat) {this.windowSeat = windowSeat;}
+    public boolean isKids() { return kids;}
+    public void setKids(boolean kids) {this.kids = kids;}
 
 }
